@@ -1,0 +1,5 @@
+# Run linting and formatting on staged files
+pnpm exec lint-staged
+
+# Run linting and formatting on uncommitted files
+pnpm exec nx affected -t lint --uncommitted
