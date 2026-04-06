@@ -2,12 +2,26 @@
   "name": "@dev-snippet-vault/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "prepare": "husky",
+    "commit": "commit"
+  },
   "private": true,
-  "dependencies": {},
   "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "@commitlint/prompt-cli": "^20.5.0",
+    "@commitlint/types": "^20.5.0",
     "@nx/js": "22.6.4",
     "@nx/workspace": "22.6.4",
-    "nx": "22.6.4"
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "nx": "22.6.4",
+    "prettier": "^3.8.1"
+  },
+  "lint-staged": {
+    "*.{js,ts,jsx,tsx,json,md,html,css,scss}": [
+      "pnpm exec prettier --write"
+    ]
   }
 }

@@ -1,0 +1,2 @@
+# Run commitlint on the commit message
+pnpm exec commitlint --edit $1
