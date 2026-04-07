@@ -15,49 +15,50 @@ describe('getNormalizedMultilineSchema', () => {
   });
 
   describe('created schema preprocessing', () => {
-    it('collapses inner whitespace but preserves spaces and tabs in leading indent', () => {
+    it('trims outer whitespace from the full string before line normalization', () => {
       const schema = getNormalizedMultilineSchema({ indentWidth: 2 });
-      expect(schema.parse('  hello    world')).toBe('  hello world');
-      expect(schema.parse('\t\tfoo \t bar')).toBe('    foo bar');
+      expect(schema.parse('  hello    world')).toBe('hello world');
+      expect(schema.parse('\t\tfoo \t bar')).toBe('foo bar');
+      expect(schema.parse('\n  hello\n')).toBe('hello');
     });
 
-    it('treats blank lines containing spaces or tabs as empty strings', () => {
+    it('treats whitespace-only input as empty after outer trimming', () => {
       const schema = getNormalizedMultilineSchema();
-      expect(schema.parse('   \n\t\t\n  \t  ')).toBe('\n\n');
+      expect(schema.parse('   \n\t\t\n  \t  ')).toBe('');
     });
 
-    it('floors leading indentation to a multiple of indentWidth (default 2)', () => {
+    it('floors indentation to a multiple of indentWidth on non-first lines (default 2)', () => {
       const schema = getNormalizedMultilineSchema();
-      expect(schema.parse(' a')).toBe('a'); // 1 -> 0
-      expect(schema.parse('  b')).toBe('  b'); // 2 -> 2
-      expect(schema.parse('   c')).toBe('  c'); // 3 -> 2
-      expect(schema.parse('    d')).toBe('    d'); // 4 -> 4
-      expect(schema.parse('     e')).toBe('    e'); // 5 -> 4
+      expect(schema.parse('x\n a')).toBe('x\na'); // 1 -> 0
+      expect(schema.parse('x\n  b')).toBe('x\n  b'); // 2 -> 2
+      expect(schema.parse('x\n   c')).toBe('x\n  c'); // 3 -> 2
+      expect(schema.parse('x\n    d')).toBe('x\n    d'); // 4 -> 4
+      expect(schema.parse('x\n     e')).toBe('x\n    e'); // 5 -> 4
     });
 
     it('handles indentWidth of 3 or 4 correctly', () => {
       const schema3 = getNormalizedMultilineSchema({ indentWidth: 3 });
-      expect(schema3.parse('  a')).toBe('a'); // 2 -> 0
-      expect(schema3.parse('   b')).toBe('   b'); // 3 -> 3
-      expect(schema3.parse('    c')).toBe('   c'); // 4 -> 3
-      expect(schema3.parse('      d')).toBe('      d'); // 6 -> 6
+      expect(schema3.parse('x\n  a')).toBe('x\na'); // 2 -> 0
+      expect(schema3.parse('x\n   b')).toBe('x\n   b'); // 3 -> 3
+      expect(schema3.parse('x\n    c')).toBe('x\n   c'); // 4 -> 3
+      expect(schema3.parse('x\n      d')).toBe('x\n      d'); // 6 -> 6
 
       const schema4 = getNormalizedMultilineSchema({ indentWidth: 4 });
-      expect(schema4.parse('   a')).toBe('a'); // 3 -> 0
-      expect(schema4.parse('    b')).toBe('    b'); // 4 -> 4
-      expect(schema4.parse('     c')).toBe('    c'); // 5 -> 4
+      expect(schema4.parse('x\n   a')).toBe('x\na'); // 3 -> 0
+      expect(schema4.parse('x\n    b')).toBe('x\n    b'); // 4 -> 4
+      expect(schema4.parse('x\n     c')).toBe('x\n    c'); // 5 -> 4
     });
 
-    it('expands leading tabs to indentWidth spaces before flooring', () => {
+    it('expands leading tabs to indentWidth spaces before flooring on non-first lines', () => {
       const schema2 = getNormalizedMultilineSchema({ indentWidth: 2 });
-      expect(schema2.parse('\ta')).toBe('  a'); // 1 tab -> 2 spaces
-      expect(schema2.parse('\t\tb')).toBe('    b'); // 2 tabs -> 4 spaces
-      expect(schema2.parse('\t c')).toBe('  c'); // 1 tab + 1 space = 3 spaces -> 2 spaces
-      expect(schema2.parse('\t  d')).toBe('    d'); // 1 tab + 2 spaces = 4 spaces -> 4 spaces
+      expect(schema2.parse('x\n\ta')).toBe('x\n  a'); // 1 tab -> 2 spaces
+      expect(schema2.parse('x\n\t\tb')).toBe('x\n    b'); // 2 tabs -> 4 spaces
+      expect(schema2.parse('x\n\t c')).toBe('x\n  c'); // 1 tab + 1 space = 3 spaces -> 2 spaces
+      expect(schema2.parse('x\n\t  d')).toBe('x\n    d'); // 1 tab + 2 spaces = 4 spaces -> 4 spaces
 
       const schema4 = getNormalizedMultilineSchema({ indentWidth: 4 });
-      expect(schema4.parse('\ta')).toBe('    a'); // 1 tab -> 4 spaces
-      expect(schema4.parse('\t b')).toBe('    b'); // 1 tab + 1 space = 5 spaces -> 4 spaces
+      expect(schema4.parse('x\n\ta')).toBe('x\n    a'); // 1 tab -> 4 spaces
+      expect(schema4.parse('x\n\t b')).toBe('x\n    b'); // 1 tab + 1 space = 5 spaces -> 4 spaces
     });
 
     it('normalizes carriage returns and collapses newlines to maxConsecutiveNewlines (default 2)', () => {
@@ -87,32 +88,32 @@ describe('getNormalizedMultilineSchema', () => {
       expect(schema3.parse('a\n\n\nb')).toBe('a\n\n\nb');
     });
 
-    it('trims leading and trailing spaces from the inner content while keeping leading indent', () => {
+    it('trims the first line fully and still preserves indentation on later lines', () => {
       const schema = getNormalizedMultilineSchema();
-      expect(schema.parse('  a  ')).toBe('  a');
-      expect(schema.parse('    a \t ')).toBe('    a');
+      expect(schema.parse('  a  ')).toBe('a');
+      expect(schema.parse(' a\n    b \t ')).toBe('a\n    b');
     });
   });
 
   describe('created schema validation', () => {
     it('applies minLength constraint to the preprocessed string', () => {
       const schema = getNormalizedMultilineSchema({ minLength: 5 });
-      // "  a" has length 3, throws
+      // "a" has length 1 after outer trimming, throws
       expect(() => schema.parse('  a')).toThrow(ZodError);
-      // "  abc" has length 5, passes
-      expect(schema.parse('  abc')).toBe('  abc');
-      // " \ta" has width 3 -> floored 2 -> "  a" (length 3), throws
-      expect(() => schema.parse(' \ta')).toThrow(ZodError);
+      // "abcde" has length 5, passes
+      expect(schema.parse('  abcde')).toBe('abcde');
+      // newline-only content after trimming is empty, so it also fails
+      expect(() => schema.parse('   \n\t  ')).toThrow(ZodError);
     });
 
     it('applies maxLength constraint to the preprocessed string', () => {
       const schema = getNormalizedMultilineSchema({ maxLength: 5 });
-      // "  abc" has length 5, passes
-      expect(schema.parse('  abc')).toBe('  abc');
-      // "  abcd" has length 6, throws
-      expect(() => schema.parse('  abcd')).toThrow(ZodError);
-      // "\t  abcd  " has length 6 after normalization ("  abcd"), throws
-      expect(() => schema.parse('\t  abcd  ')).toThrow(ZodError);
+      // "abcde" has length 5, passes
+      expect(schema.parse('  abcde')).toBe('abcde');
+      // "abcdef" has length 6 after trimming/normalization, throws
+      expect(() => schema.parse('  abcdef')).toThrow(ZodError);
+      // second-line indentation still counts after preprocessing
+      expect(() => schema.parse('x\n    abcde')).toThrow(ZodError);
     });
 
     it('returns a string', () => {
@@ -122,8 +123,15 @@ describe('getNormalizedMultilineSchema', () => {
 
     it('works with default options when called with no arguments', () => {
       const schema = getNormalizedMultilineSchema();
-      // " \ta " (space, tab) -> width 3 -> floored 2 -> "  a"
-      expect(schema.parse(' \ta ')).toBe('  a');
+      // outer trim removes the first-line indent before per-line normalization
+      expect(schema.parse(' \ta ')).toBe('a');
+    });
+
+    it('requires meaningful content for minLength instead of allowing only blank lines', () => {
+      const schema = getNormalizedMultilineSchema({ minLength: 1 });
+      expect(() => schema.parse('\n')).toThrow(ZodError);
+      expect(() => schema.parse('   \n\t  ')).toThrow(ZodError);
+      expect(schema.parse('\n  x\n')).toBe('x');
     });
   });
 });
