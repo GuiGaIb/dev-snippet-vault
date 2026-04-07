@@ -18,7 +18,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "paths": {
-      "@models/types": ["libs/data-model/types/src/*.ts"]
+      "@models/types/*": ["libs/data-model/types/src/*.ts"],
+      "@models/schemas/*": ["libs/data-model/schemas/src/*.ts"]
     },
     "resolveJsonModule": true,
     "rootDir": ".",

@@ -2,4 +2,5 @@
 pnpm exec lint-staged
 
 # Run linting and formatting on uncommitted files
+export NX_TUI=false
 pnpm exec nx affected -t lint --uncommitted

@@ -7,6 +7,7 @@
     "commit": "commit"
   },
   "private": true,
+  "type": "module",
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
@@ -16,11 +17,14 @@
     "@nx/eslint": "22.6.4",
     "@nx/eslint-plugin": "22.6.4",
     "@nx/js": "22.6.4",
+    "@nx/vite": "22.6.4",
+    "@nx/vitest": "22.6.4",
     "@nx/workspace": "22.6.4",
     "@swc-node/register": "~1.11.1",
     "@swc/core": "~1.15.5",
     "@swc/helpers": "~0.5.18",
     "@types/node": "20.19.9",
+    "@vitest/coverage-v8": "~4.1.0",
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^10.0.0",
     "husky": "^9.1.7",
@@ -29,7 +33,9 @@
     "prettier": "^3.8.1",
     "tslib": "^2.3.0",
     "typescript": "~5.9.2",
-    "typescript-eslint": "^8.40.0"
+    "typescript-eslint": "^8.40.0",
+    "vite": "^8.0.0",
+    "vitest": "~4.1.0"
   },
   "lint-staged": {
     "*.{js,ts,jsx,tsx,json,md,html,css,scss}": [
@@ -37,6 +43,7 @@
     ]
   },
   "dependencies": {
+    "mongoose": "~9.2.2",
     "zod": "^4.3.6"
   }
 }

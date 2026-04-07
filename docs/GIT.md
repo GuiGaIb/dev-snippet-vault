@@ -8,8 +8,13 @@ Name branches `<type>/<short-description>`, using the same **type** vocabulary a
 
 Husky runs:
 
-- **`pre-commit`** — [lint-staged](https://github.com/okonet/lint-staged) runs Prettier (`--write`) on staged `*.{js,ts,jsx,tsx,json,md,html,css,scss}`; then `nx affected -t lint --uncommitted` runs each project’s `lint` target for the set **affected by** uncommitted files.
-- **`commit-msg`** — [Commitlint](https://github.com/conventional-changelog/commitlint) checks the message against [`commitlint.config.ts`](../commitlint.config.ts).
+- **`pre-commit`**
+  - [lint-staged](https://github.com/okonet/lint-staged) runs Prettier (`--write`) on staged `*.{js,ts,jsx,tsx,json,md,html,css,scss}`.
+  - `nx affected -t lint --uncommitted` runs the `lint` target for all projects affected by uncommitted files.
+- **`commit-msg`**
+  - [Commitlint](https://github.com/conventional-changelog/commitlint) checks the message against [`commitlint.config.ts`](../commitlint.config.ts).
+- **`pre-push`**
+  - `nx affected -t test --base=origin/main --head=HEAD` runs the `test` target for all projects affected by the commits being pushed (compared to `origin/main`), ensuring no test regressions are introduced.
 
 ## Commit messages
 
