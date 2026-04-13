@@ -12,7 +12,7 @@ const Configuration: UserConfig = {
       },
     ],
     'scope-empty': [RuleConfigSeverity.Error, 'never'],
-    'header-max-length': [RuleConfigSeverity.Error, 'always', 50],
+    'header-max-length': [RuleConfigSeverity.Error, 'always', 72],
     'type-enum': [
       RuleConfigSeverity.Error,
       'always',

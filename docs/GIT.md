@@ -22,6 +22,6 @@ Use [Conventional Commits](https://www.conventionalcommits.org/): `<type>(<scope
 
 - **type** — Must be one of the allowed values in `commitlint.config.ts` (includes `style` for formatting-only changes).
 - **scope** — Required. Kebab-case; `/` is allowed for nested scopes. Use `root` when the change is not tied to a specific Nx project.
-- **First line** — The whole header (`type`, `scope`, and description) is limited to **50 characters** (`header-max-length`).
+- **First line** — The whole header (`type`, `scope`, and description) is limited to **72 characters** (`header-max-length`).
 
 For rule details (scope casing, enums, length), see [`commitlint.config.ts`](../commitlint.config.ts).
