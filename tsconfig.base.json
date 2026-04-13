@@ -19,7 +19,8 @@
     "noUnusedParameters": true,
     "paths": {
       "@models/types/*": ["libs/data-model/types/src/*.ts"],
-      "@models/schemas/*": ["libs/data-model/schemas/src/*.ts"]
+      "@models/schemas/*": ["libs/data-model/schemas/src/*.ts"],
+      "@backend/data-access/*": ["libs/backend/data-access/src/*.ts"]
     },
     "resolveJsonModule": true,
     "rootDir": ".",

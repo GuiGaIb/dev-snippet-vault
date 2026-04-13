@@ -1,0 +1,8 @@
+{
+  "name": "backend-data-access",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/backend/data-access/src",
+  "projectType": "library",
+  "tags": ["platform:node"],
+  "targets": {}
+}
