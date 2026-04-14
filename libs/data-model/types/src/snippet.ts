@@ -29,6 +29,13 @@ export type TSnippet = {
   language: string;
 
   /**
+   * Language version range that the snippet is compatible with.
+   *
+   * See {@link TSnippetLanguageVersionRange} for more details.
+   */
+  languageVersionRange?: TSnippetLanguageVersionRange;
+
+  /**
    * Code content of the snippet.
    *
    * Multi-line string, max 65536 characters.
@@ -71,4 +78,27 @@ export type TSnippetDependency = {
    * Single-line string, max 256 characters.
    */
   version?: string;
+};
+
+/**
+ * Language version range specification.
+ *
+ * Used to specify the range of language versions that a snippet is compatible with.
+ */
+export type TSnippetLanguageVersionRange = {
+  /**
+   * Starting version of the range.
+   *
+   * Should be a valid reference to a language version id (`TLanguageVersion['id']`).
+   */
+  from: string;
+
+  /**
+   * Optional ending version of the range.
+   *
+   * Should be a valid reference to a language version id (`TLanguageVersion['id']`).
+   *
+   * If not provided, the range is considered as an exact version specification.
+   */
+  to?: string;
 };

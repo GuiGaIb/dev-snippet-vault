@@ -1,4 +1,8 @@
-import type { TSnippet, TSnippetDependency } from '@models/types/snippet';
+import type {
+  TSnippet,
+  TSnippetDependency,
+  TSnippetLanguageVersionRange,
+} from '@models/types/snippet';
 import z from 'zod';
 import { getNormalizedLineSchema } from './shared/normalizedLine.js';
 import { getNormalizedMultilineSchema } from './shared/normalizedMultiline.js';
@@ -15,6 +19,11 @@ export const snippetDependencySchema = z.object({
   }).optional(),
 }) satisfies z.ZodType<TSnippetDependency>;
 
+export const snippetLanguageVersionRangeSchema = z.object({
+  from: objectIdLikeSchema,
+  to: objectIdLikeSchema.optional(),
+}) satisfies z.ZodType<TSnippetLanguageVersionRange>;
+
 export const snippetSchema = z.object({
   id: objectIdLikeSchema,
   title: getNormalizedLineSchema({
@@ -26,6 +35,7 @@ export const snippetSchema = z.object({
     maxLength: 1024,
   }).optional(),
   language: objectIdLikeSchema,
+  languageVersionRange: snippetLanguageVersionRangeSchema.optional(),
   code: getNormalizedMultilineSchema({
     minLength: 1,
     maxLength: 65536,
