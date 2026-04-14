@@ -2,6 +2,7 @@ import type { TLanguage, TLanguageVersion } from '@models/types/language';
 import z from 'zod';
 import { getNormalizedLineSchema } from './shared/normalizedLine.js';
 import { objectIdLikeSchema } from './shared/objectIdLike.js';
+import { timeStampsSchema } from './shared/timestamps.js';
 
 export const languageVersionSchema = z.object({
   id: objectIdLikeSchema,
@@ -13,6 +14,7 @@ export const languageVersionSchema = z.object({
 }) satisfies z.ZodType<TLanguageVersion>;
 
 export const languageSchema = z.object({
+  ...timeStampsSchema.shape,
   id: objectIdLikeSchema,
   name: getNormalizedLineSchema({
     minLength: 1,

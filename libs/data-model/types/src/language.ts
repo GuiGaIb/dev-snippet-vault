@@ -1,24 +1,29 @@
+import type { Extend, TTimeStamps } from './shared.js';
+
 /**
  * Language record.
  */
-export interface TLanguage {
-  /**
-   * Unique identifier for the language record
-   */
-  id: string;
+export type TLanguage = Extend<
+  {
+    /**
+     * Unique identifier for the language record
+     */
+    id: string;
 
-  /**
-   * Language name
-   */
-  name: string;
+    /**
+     * Language name
+     */
+    name: string;
 
-  /**
-   * List of registered language versions.
-   *
-   * Should enforce uniqueness across `versionId` AND `sortIdx`.
-   */
-  versions: TLanguageVersion[];
-}
+    /**
+     * List of registered language versions.
+     *
+     * Should enforce uniqueness across `versionId` AND `sortIdx`.
+     */
+    versions: TLanguageVersion[];
+  },
+  TTimeStamps
+>;
 
 /**
  * Language version metadata.

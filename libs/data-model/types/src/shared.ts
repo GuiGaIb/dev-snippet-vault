@@ -42,3 +42,18 @@ export type Extend<A extends SomeObject, B extends SomeObject> = Flatten<
         [K in keyof B]: B[K];
       }
 >;
+
+/**
+ * Timestamp record.
+ */
+export type TTimeStamps = {
+  /**
+   * Timestamp of the record creation.
+   */
+  createdAt: Date;
+
+  /**
+   * Timestamp of the last record update.
+   */
+  updatedAt: Date;
+};

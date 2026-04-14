@@ -7,6 +7,7 @@ import z from 'zod';
 import { getNormalizedLineSchema } from './shared/normalizedLine.js';
 import { getNormalizedMultilineSchema } from './shared/normalizedMultiline.js';
 import { objectIdLikeSchema } from './shared/objectIdLike.js';
+import { timeStampsSchema } from './shared/timestamps.js';
 
 export const snippetDependencySchema = z.object({
   name: getNormalizedLineSchema({
@@ -25,6 +26,7 @@ export const snippetLanguageVersionRangeSchema = z.object({
 }) satisfies z.ZodType<TSnippetLanguageVersionRange>;
 
 export const snippetSchema = z.object({
+  ...timeStampsSchema.shape,
   id: objectIdLikeSchema,
   title: getNormalizedLineSchema({
     minLength: 1,
