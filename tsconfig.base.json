@@ -18,10 +18,10 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "paths": {
-      "@models/types/*": ["libs/data-model/types/src/*.ts"],
+      "@backend/dao/*": ["libs/backend/dao/src/*.ts"],
+      "@backend/zodProp": ["libs/backend/zod-prop/src/index.ts"],
       "@models/schemas/*": ["libs/data-model/schemas/src/*.ts"],
-      "@backend/data-access/*": ["libs/backend/data-access/src/*.ts"],
-      "@backend/zodProp": ["libs/backend/zod-prop/src/index.ts"]
+      "@models/types/*": ["libs/data-model/types/src/*.ts"]
     },
     "resolveJsonModule": true,
     "rootDir": ".",
