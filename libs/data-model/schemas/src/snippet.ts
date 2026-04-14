@@ -43,3 +43,5 @@ export const snippetSchema = z.object({
       Array.from(new Set([...tags.map((tag) => tag.toLowerCase())])),
     ),
 }) satisfies z.ZodType<TSnippet>;
+
+export type TSnippetInput = z.input<typeof snippetSchema>;
