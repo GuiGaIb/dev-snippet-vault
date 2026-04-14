@@ -4,6 +4,7 @@ import { getNormalizedLineSchema } from './shared/normalizedLine.js';
 import { objectIdLikeSchema } from './shared/objectIdLike.js';
 
 export const languageVersionSchema = z.object({
+  id: objectIdLikeSchema,
   versionId: getNormalizedLineSchema({
     minLength: 1,
     maxLength: 64,
@@ -87,7 +88,11 @@ export function minimizeVersionSortIdxs(
   // chaining .map(), avoiding a second array allocation
   const sorted = versions.toSorted((a, b) => a.sortIdx - b.sortIdx);
   for (let i = 0; i < sorted.length; i++) {
-    sorted[i] = { versionId: sorted[i].versionId, sortIdx: i };
+    sorted[i] = {
+      id: sorted[i].id,
+      versionId: sorted[i].versionId,
+      sortIdx: i,
+    };
   }
   return sorted;
 }

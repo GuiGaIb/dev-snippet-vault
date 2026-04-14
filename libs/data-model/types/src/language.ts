@@ -25,6 +25,11 @@ export interface TLanguage {
  */
 export type TLanguageVersion = {
   /**
+   * Unique identifier for the version record
+   */
+  id: string;
+
+  /**
    * Version identifier, unique among language versions.
    *
    * Single-line, max 64 characters.
