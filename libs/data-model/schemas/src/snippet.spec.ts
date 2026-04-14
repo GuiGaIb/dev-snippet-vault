@@ -1,8 +1,16 @@
 import { Types } from 'mongoose';
 import { ZodError } from 'zod';
-import { snippetDependencySchema, snippetSchema } from './snippet.js';
+import {
+  snippetSchema as _snippetSchema,
+  snippetDependencySchema,
+} from './snippet.js';
 
 describe('snippet schemas', () => {
+  const snippetSchema = _snippetSchema.omit({
+    createdAt: true,
+    updatedAt: true,
+  });
+
   describe('snippetDependencySchema', () => {
     it('accepts a dependency with name and version', () => {
       expect(
