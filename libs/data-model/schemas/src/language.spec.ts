@@ -166,7 +166,7 @@ describe('language schemas', () => {
       validId = faker.database.mongodbObjectId();
     });
 
-    it('normalizes the name, validates the id, and minimizes version sort indexes', () => {
+    it('normalizes the name and validates the id', () => {
       const id1 = faker.database.mongodbObjectId();
       const id2 = faker.database.mongodbObjectId();
       expect(
@@ -190,8 +190,8 @@ describe('language schemas', () => {
         id: validId,
         name: 'TypeScript',
         versions: [
-          { id: id2, versionId: '4.9', sortIdx: 0 },
-          { id: id1, versionId: '5.3', sortIdx: 1 },
+          { id: id1, versionId: '5.3', sortIdx: 8 },
+          { id: id2, versionId: '4.9', sortIdx: 3 },
         ],
       });
     });

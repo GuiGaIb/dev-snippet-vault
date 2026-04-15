@@ -20,26 +20,23 @@ export const languageSchema = z.object({
     minLength: 1,
     maxLength: 64,
   }),
-  versions: z
-    .array(languageVersionSchema)
-    .superRefine((versions, ctx) => {
-      const { versionIds, sortIdxs } = extractVersionDuplicates(versions);
-      versionIds.forEach(([index, versionId]) => {
-        ctx.addIssue({
-          code: 'custom',
-          path: [index, 'versionId'],
-          message: `Version ID '${versionId}' is not unique`,
-        });
+  versions: z.array(languageVersionSchema).superRefine((versions, ctx) => {
+    const { versionIds, sortIdxs } = extractVersionDuplicates(versions);
+    versionIds.forEach(([index, versionId]) => {
+      ctx.addIssue({
+        code: 'custom',
+        path: [index, 'versionId'],
+        message: `Version ID '${versionId}' is not unique`,
       });
-      sortIdxs.forEach(([index, sortIdx]) => {
-        ctx.addIssue({
-          code: 'custom',
-          path: [index, 'sortIdx'],
-          message: `Sort index '${sortIdx}' is not unique`,
-        });
+    });
+    sortIdxs.forEach(([index, sortIdx]) => {
+      ctx.addIssue({
+        code: 'custom',
+        path: [index, 'sortIdx'],
+        message: `Sort index '${sortIdx}' is not unique`,
       });
-    })
-    .transform(minimizeVersionSortIdxs),
+    });
+  }),
 }) satisfies z.ZodType<TLanguage>;
 
 export type TLanguageInput = z.input<typeof languageSchema>;
