@@ -217,7 +217,7 @@ export function computeValidator(
     message: (props: ValidatorProps) => {
       const error = schema.safeParse(props.value).error;
       const prettyError = error ? z.prettifyError(error) : 'Unknown error';
-      return `Path "${props.path}" invalid:\n${prettyError
+      return `Path \`${props.path}\` invalid:\n${prettyError
         .split('\n')
         .map((x) => ' '.repeat(2) + x.trim())
         .join('\n')}`;

@@ -100,11 +100,11 @@ describe('zodProp', () => {
       num: faker.number.float(),
       date: new Date(),
     });
-    await expect(doc.validate()).rejects.toThrow('Path "str" invalid');
+    await expect(doc.validate()).rejects.toThrow('Path `str` invalid');
 
     doc.str = '123';
     doc.email = faker.lorem.word();
-    await expect(doc.validate()).rejects.toThrow('Path "email" invalid');
+    await expect(doc.validate()).rejects.toThrow('Path `email` invalid');
 
     doc.email = faker.internet.email();
     await expect(doc.validate()).resolves.not.toThrow();
@@ -177,7 +177,7 @@ describe('zodProp', () => {
     } catch (err: any) {
       expect(err.errors['str']).toBeDefined();
       const message = err.errors['str'].message;
-      expect(message).toContain('Path "str" invalid:');
+      expect(message).toContain('Path `str` invalid:');
       expect(message).toContain(
         'Too small: expected string to have >=3 characters',
       );
@@ -217,7 +217,7 @@ describe('zodProp', () => {
     await expect(doc.validate()).resolves.not.toThrow();
 
     doc.emailArr = ['invalid-email'];
-    await expect(doc.validate()).rejects.toThrow('Path "emailArr" invalid');
+    await expect(doc.validate()).rejects.toThrow('Path `emailArr` invalid');
   });
 
   it('handles Date[] array fields', () => {
@@ -274,7 +274,7 @@ describe('zodProp', () => {
     });
     doc.str = 'ab';
     expect(doc.str).toBe('ab');
-    await expect(doc.validate()).rejects.toThrow('Path "str" invalid');
+    await expect(doc.validate()).rejects.toThrow('Path `str` invalid');
   });
 
   it('defaults nullable fields to null', () => {
@@ -346,7 +346,7 @@ describe('computeValidator', () => {
       path: 'name',
       value: 'ab',
     });
-    expect(msg).toContain('Path "name" invalid:');
+    expect(msg).toContain('Path `name` invalid:');
     expect(msg).toContain('Too small');
   });
 
