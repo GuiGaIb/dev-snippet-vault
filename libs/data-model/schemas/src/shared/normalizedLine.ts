@@ -55,5 +55,9 @@ export const getNormalizedLineSchema = z
     let schema = z.string();
     if (minLength !== undefined) schema = schema.min(minLength);
     if (maxLength !== undefined) schema = schema.max(maxLength);
-    return z.preprocess((x: string) => x.replace(/\s+/g, ' ').trim(), schema);
+    return z.preprocess(
+      (x: string) =>
+        typeof x === 'string' ? x.replace(/\s+/g, ' ').trim() : x,
+      schema,
+    );
   });
