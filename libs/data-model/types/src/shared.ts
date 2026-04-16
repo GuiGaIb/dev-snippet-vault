@@ -52,6 +52,21 @@ export type MakeRequired<T, K extends keyof T> = Omit<T, K> &
   Required<Pick<T, K>>;
 
 /**
+ * Makes the specified properties of a type partial.
+ *
+ * Extracted from `zod/v4/core/util.d.cts`
+ */
+export type MakePartial<T, K extends keyof T> = Omit<T, K> &
+  InexactPartial<Pick<T, K>>;
+
+/**
+ * Extracted from `zod/v4/core/util.d.cts`
+ */
+export type InexactPartial<T> = {
+  [P in keyof T]?: T[P] | undefined;
+};
+
+/**
  * Timestamp record.
  */
 export type TTimeStamps = {
