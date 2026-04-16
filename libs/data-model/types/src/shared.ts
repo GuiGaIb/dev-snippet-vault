@@ -44,6 +44,14 @@ export type Extend<A extends SomeObject, B extends SomeObject> = Flatten<
 >;
 
 /**
+ * Makes the specified properties of a type required.
+ *
+ * Extracted from `zod/v4/core/util.d.cts`
+ */
+export type MakeRequired<T, K extends keyof T> = Omit<T, K> &
+  Required<Pick<T, K>>;
+
+/**
  * Timestamp record.
  */
 export type TTimeStamps = {
