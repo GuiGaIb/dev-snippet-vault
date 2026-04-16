@@ -18,11 +18,11 @@ export type TSnippet = Extend<
     title: string;
 
     /**
-     * Optional description of the snippet.
+     * Description of the snippet.
      *
-     * Multi-line description, max 1024 characters.
+     * Multi-line description, max 1024 characters. Can be empty.
      */
-    description?: string;
+    description: string;
 
     /**
      * Language used in the snippet.
