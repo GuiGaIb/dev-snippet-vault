@@ -20,7 +20,7 @@ export type TSnippet = Extend<
     /**
      * Description of the snippet.
      *
-     * Multi-line description, max 1024 characters. Can be empty.
+     * Multi-line description, min 5 characters, max 1024 characters.
      */
     description: string;
 

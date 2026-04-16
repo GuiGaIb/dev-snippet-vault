@@ -33,8 +33,9 @@ export const snippetSchema = z.object({
     maxLength: 128,
   }),
   description: getNormalizedMultilineSchema({
+    minLength: 5,
     maxLength: 1024,
-  }).default(''),
+  }),
   language: objectIdLikeSchema,
   languageVersionRange: snippetLanguageVersionRangeSchema.optional(),
   code: getNormalizedMultilineSchema({
