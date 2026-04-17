@@ -14,11 +14,11 @@ import {
   type ArraySubDocumentType,
   type DocumentType,
   type ReturnModelType,
-  type types,
 } from '@typegoose/typegoose';
 import { TimeStamps } from '@typegoose/typegoose/lib/defaultClasses.js';
 import type { IModelOptions } from '@typegoose/typegoose/lib/types.js';
 import type { Types } from 'mongoose';
+import { byName, type LanguageQueryHelpers } from './language.queryHelpers.js';
 
 export class CLanguageVersion implements TLanguageVersion {
   declare id: string;
@@ -116,15 +116,4 @@ export function minimizeVersionSortIdxs(doc: LanguageDoc) {
  */
 export function validateVersions(doc: LanguageDoc) {
   languageSchema.shape.versions.parse(doc.versions);
-}
-
-function byName(
-  this: types.QueryHelperThis<typeof CLanguage, LanguageQueryHelpers>,
-  name: string,
-) {
-  return this.find({ name: name.trim() });
-}
-
-interface LanguageQueryHelpers {
-  byName: types.AsQueryMethod<typeof byName>;
 }
