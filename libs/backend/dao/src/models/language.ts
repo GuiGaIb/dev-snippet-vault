@@ -90,6 +90,10 @@ export class CLanguage extends TimeStamps implements TLanguage {
   @prop({ type: [CLanguageVersion], _id: true })
   versions!: Types.Array<ArraySubDocumentType<CLanguageVersion>>;
 
+  forClient(): TLanguage {
+    return languageSchema.parse(this);
+  }
+
   static findOneByName(
     this: LanguageModel,
     name: string,

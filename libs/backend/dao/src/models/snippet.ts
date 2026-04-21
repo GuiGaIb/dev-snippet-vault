@@ -138,6 +138,10 @@ export class CSnippet extends TimeStamps implements TSnippetInput {
   @zodProp(snippetSchema.shape.tags, { type: [String] }, PropType.ARRAY)
   tags!: TSnippet['tags'];
 
+  forClient(): TSnippet {
+    return snippetSchema.parse(this);
+  }
+
   static searchText(this: SnippetModel, search: string) {
     return this.find({
       $text: {
