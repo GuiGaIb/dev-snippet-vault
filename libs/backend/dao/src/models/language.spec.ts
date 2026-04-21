@@ -39,6 +39,17 @@ describe('language model', () => {
         ]),
       );
     });
+
+    it('has a descending index on the "updatedAt" field named "updatedAt_desc"', async () => {
+      await expect(Languages.collection.indexes()).resolves.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            key: { updatedAt: -1 },
+            name: 'updatedAt_desc',
+          }),
+        ]),
+      );
+    });
   });
 
   describe('document creation', () => {

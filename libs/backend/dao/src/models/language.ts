@@ -30,9 +30,15 @@ export class CLanguageVersion implements TLanguageVersion {
   sortIdx!: number;
 }
 
+export const DEFAULT_LANGUAGE_MODEL_NAME = 'CLanguage';
+export const DEFAULT_LANGUAGE_COLLECTION = 'languages';
+
 @modelOptions({
   schemaOptions: {
-    collection: 'languages',
+    collection: DEFAULT_LANGUAGE_COLLECTION,
+  },
+  options: {
+    customName: DEFAULT_LANGUAGE_MODEL_NAME,
   },
 })
 @queryMethod(byName)
@@ -72,6 +78,7 @@ export class CLanguageVersion implements TLanguageVersion {
   },
 )
 @index({ name: 1 }, { unique: true, name: 'name_1_unique' })
+@index({ updatedAt: -1 }, { name: 'updatedAt_desc' })
 export class CLanguage extends TimeStamps implements TLanguage {
   declare id: string;
   declare createdAt: Date;
