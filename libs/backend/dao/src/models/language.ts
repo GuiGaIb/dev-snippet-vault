@@ -78,7 +78,7 @@ export const DEFAULT_LANGUAGE_COLLECTION = 'languages';
   },
 )
 @index({ name: 1 }, { unique: true, name: 'name_1_unique' })
-@index({ updatedAt: -1 }, { name: 'updatedAt_desc' })
+@index({ updatedAt: -1, _id: -1 }, { name: 'updatedAt_desc_id_desc' })
 export class CLanguage extends TimeStamps implements TLanguage {
   declare id: string;
   declare createdAt: Date;
