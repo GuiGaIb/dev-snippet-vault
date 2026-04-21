@@ -1,3 +1,4 @@
+import type { TLanguage } from '@models/types/language';
 import type { PagedResponse } from '@models/types/restApi';
 import type { SortOrder } from 'mongoose';
 import { Types } from 'mongoose';
@@ -105,7 +106,7 @@ export class LanguageService implements ILanguageService {
    */
   async listLanguages(
     cursor?: string | LanguageCursorInput,
-  ): Promise<PagedResponse<LanguageDoc>> {
+  ): Promise<PagedResponse<TLanguage>> {
     const decoded = this.normalizeLanguageCursor(cursor);
     const query = this.buildLanguagesQuery(decoded);
     let docs = await query.exec();
@@ -158,7 +159,7 @@ export class LanguageService implements ILanguageService {
       pageCursor.before !== undefined || pageCursor.after !== undefined;
 
     return {
-      data: docs,
+      data: docs.map((doc) => doc.forClient()),
       ...(hasCursorKeys ? { cursor: pageCursor } : {}),
     };
   }
