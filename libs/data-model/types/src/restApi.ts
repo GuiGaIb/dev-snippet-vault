@@ -3,9 +3,9 @@
  */
 export type ErrorResponse = {
   /** Human-readable error summary for clients. */
-  message?: string;
-  /** HTTP status code associated with this error, when applicable. */
-  status?: number;
+  message: string;
+  /** HTTP status code associated with this error */
+  status: number;
   /** Structured validation or domain details (field errors, codes, etc.). */
   details?: Record<string, unknown>;
 };
