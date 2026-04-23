@@ -14,7 +14,12 @@ The `POST /languages` middleware (`createLanguage`) SHALL create a new language 
 #### Scenario: Successful creation with versions
 
 - **WHEN** the client sends `POST /languages` with a body `{ name: <valid name>, versions: [<valid, unique versions>] }`
-- **THEN** the middleware persists the document, responds with HTTP `201`, and the response body's `versions` matches the submitted versions (order preserved as returned by the model)
+- **THEN** the middleware persists the document, responds with HTTP `201`, and the response body's `versions` preserves the submitted `versionId` and `sortIdx` values while including generated ids for each persisted version entry
+
+#### Scenario: Versions omitted
+
+- **WHEN** the client sends `POST /languages` with a body `{ name: <valid unique name> }` and omits `versions`
+- **THEN** the middleware treats `versions` as an empty array before invoking the service and responds with a valid `TLanguage`
 
 ### Requirement: Invalid request body yields logical 400
 
@@ -81,3 +86,43 @@ Any error thrown by `languageService.createLanguage` that is not a recognized du
 
 - **WHEN** `languageService.createLanguage` throws an error that is neither a Zod parse error nor a Mongo duplicate-key error
 - **THEN** the response body has `status === 500`, `message === "Internal server error"`, and `details.cause` equals the original error message
+
+## Middleware Infrastructure
+
+### Requirement: Language service initializer provides a `LanguageService`
+
+The `initLanguageService` middleware SHALL ensure a `LanguageService` instance is available at `res.locals.languageService` before downstream language middleware runs.
+
+#### Scenario: Create service from locals options
+
+- **WHEN** `res.locals.languageService` is not already a `LanguageService`
+- **THEN** the middleware creates one using `res.locals.languageServiceOptions`, assigns it to `res.locals.languageService`, and continues the middleware chain
+
+#### Scenario: Reuse existing service
+
+- **WHEN** `res.locals.languageService` is already a `LanguageService`
+- **THEN** the middleware MUST NOT replace it and MUST continue the middleware chain
+
+#### Scenario: Initialization failure
+
+- **WHEN** creating the `LanguageService` throws an error
+- **THEN** the middleware forwards an `ErrorResponse` with `status === 500`, `message === "Failed to initialize language service"`, and `details.error` containing the thrown error as a string
+
+### Requirement: Error handler serializes standardized API errors
+
+The `errorHandler` middleware SHALL convert any error matching `errorResponseSchema` into a JSON response with HTTP status `200`, leaving the logical status in `body.status`.
+
+#### Scenario: Standardized error response
+
+- **WHEN** a prior middleware calls `next()` with an error object matching `errorResponseSchema`
+- **THEN** the handler responds with HTTP `200` and the parsed error object as the response body
+
+#### Scenario: Headers already sent
+
+- **WHEN** the error handler is invoked after headers have already been sent
+- **THEN** it delegates to the next error handler instead of attempting to write a response
+
+#### Scenario: Non-standard error
+
+- **WHEN** the error handler receives an error that does not match `errorResponseSchema`
+- **THEN** it delegates to the next error handler without transforming the error
