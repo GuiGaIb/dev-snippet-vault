@@ -41,13 +41,41 @@ export const languageSchema = z.object({
 
 export type TLanguageInput = z.input<typeof languageSchema>;
 
+export const createLanguageSchema = z.object({
+  name: languageSchema.shape.name,
+  versions: z
+    .array(languageVersionSchema.omit({ id: true }))
+    .superRefine((versions, ctx) => {
+      const { versionIds, sortIdxs } = extractVersionDuplicates(versions);
+      versionIds.forEach(([index, versionId]) => {
+        ctx.addIssue({
+          code: 'custom',
+          path: [index, 'versionId'],
+          message: `Version ID '${versionId}' is not unique`,
+        });
+      });
+      sortIdxs.forEach(([index, sortIdx]) => {
+        ctx.addIssue({
+          code: 'custom',
+          path: [index, 'sortIdx'],
+          message: `Sort index '${sortIdx}' is not unique`,
+        });
+      });
+    })
+    .default(() => []),
+});
+
+export type TCreateLanguageInput = z.input<typeof createLanguageSchema>;
+
 /**
  * Finds duplicate `versionId` and `sortIdx` values in version metadata.
  *
  * The first occurrence of each value is treated as canonical; only subsequent
  * occurrences are reported, paired with the index where the duplicate appears.
  */
-export function extractVersionDuplicates(versions: TLanguageVersion[]): {
+export function extractVersionDuplicates(
+  versions: Omit<TLanguageVersion, 'id'>[],
+): {
   versionIds: [index: number, versionId: string][];
   sortIdxs: [index: number, sortIdx: number][];
 } {
