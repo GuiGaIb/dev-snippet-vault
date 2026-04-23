@@ -9,12 +9,13 @@ import express, {
 } from 'express';
 import request from 'supertest';
 import { vi } from 'vitest';
+import { errorHandler } from '../errorHandler.js';
 import { initLanguageService } from './initLanguageService.js';
 import type { LanguageLocals } from './types.js';
 
 /*
   Script to run this test suite:
-  nx test backend-api v1/languages/middleware/initLanguageService
+  nx test backend-api v1/middleware/languages/initLanguageService
 */
 
 describe('initLanguageService', () => {
@@ -105,13 +106,18 @@ describe('initLanguageService', () => {
       .spyOn(LanguageService, 'getInstance')
       .mockRejectedValue(error);
 
-    app.use((err: Error, _req: Request, res: Response) => {
-      res.status(500).json({ message: err.message });
+    app.use(errorHandler);
+
+    const response = await request(app).get('/');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      message: 'Failed to initialize language service',
+      status: 500,
+      details: {
+        error: String(error),
+      },
     });
-
-    const response = await request(app).get('/').expect(500);
-
-    expect(response.body.message).toBe('Test error');
 
     spy.mockRestore();
   });
