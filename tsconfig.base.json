@@ -19,6 +19,7 @@
     "noUnusedParameters": true,
     "paths": {
       "@backend/api": ["libs/backend/api/src/index.ts"],
+      "@backend/api/v1": ["libs/backend/api/src/v1/index.ts"],
       "@backend/dao/*": ["libs/backend/dao/src/*.ts"],
       "@backend/zodProp": ["libs/backend/zod-prop/src/index.ts"],
       "@models/schemas/*": ["libs/data-model/schemas/src/*.ts"],
