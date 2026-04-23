@@ -1,9 +1,9 @@
+import type { TCreateLanguageInput } from '@models/schemas/language';
 import type { TLanguage } from '@models/types/language';
 import type { PagedResponse } from '@models/types/restApi';
 import type { SortOrder } from 'mongoose';
 import { Types } from 'mongoose';
 import {
-  CLanguage,
   getLanguageModel,
   type LanguageDoc,
   type LanguageModel,
@@ -176,9 +176,7 @@ export class LanguageService implements ILanguageService {
     return languageCursorSchema.parse(cursor);
   }
 
-  createLanguage(
-    data: Partial<Pick<CLanguage, 'name' | 'versions'>>,
-  ): Promise<LanguageDoc> {
+  createLanguage(data: TCreateLanguageInput): Promise<LanguageDoc> {
     return this.Languages.create(data);
   }
 
