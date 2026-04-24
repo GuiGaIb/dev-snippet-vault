@@ -101,6 +101,63 @@ Route middleware in `backend-api` SHALL use the shared middleware helpers for ge
 - **WHEN** `createLanguage` handles a duplicate-name persistence failure
 - **THEN** it uses the shared duplicate-key helper to detect the duplicate-key condition and still returns the same logical `400` response contract defined for `POST /languages`
 
+### Requirement: List languages endpoint
+
+The `POST /languages/list` middleware (`listLanguages`) SHALL query the language collection and respond with a paginated list of languages using cursor-based pagination.
+
+#### Scenario: Successful listing
+
+- **WHEN** the client sends `POST /languages/list` with an empty body `{}`
+- **THEN** the middleware responds with HTTP `200` and a `PagedResponse<TLanguage>` containing the first page of results using default sorting and limits
+
+#### Scenario: Listing with limit and sort
+
+- **WHEN** the client sends `POST /languages/list` with `limit` and `sort` parameters
+- **THEN** the middleware applies the requested limit and sort order to the query and responds with HTTP `200` and a `PagedResponse<TLanguage>`
+
+#### Scenario: Paging forward with cursor
+
+- **WHEN** the client sends `POST /languages/list` with a valid `cursor` string obtained from a previous response
+- **THEN** the middleware resumes the query from the cursor position and responds with HTTP `200` and the next page of results
+
+#### Scenario: Cursor overrides limit and sort
+
+- **WHEN** the client sends `POST /languages/list` with a `cursor`, `limit`, and `sort`
+- **THEN** the middleware uses the cursor to fetch the next page, ignoring the `limit` and `sort` from the request body
+
+### Requirement: Invalid list request yields logical 400
+
+The middleware SHALL validate `req.body` against `listLanguagesRequestBodySchema` before invoking the service. On validation failure it SHALL forward an `ErrorResponse` with `status: 400`, a descriptive `message`, and `details.issues`.
+
+#### Scenario: Invalid cursor format
+
+- **WHEN** the client sends `POST /languages/list` with a `cursor` that is not valid base64
+- **THEN** the response body has `status === 400` and `message` indicates the cursor is invalid
+
+#### Scenario: Invalid sort shape
+
+- **WHEN** the client sends `POST /languages/list` with an invalid `sort` payload
+- **THEN** the response body has `status === 400` and `message` indicates the sort is invalid
+
+#### Scenario: Invalid limit
+
+- **WHEN** the client sends `POST /languages/list` with an invalid `limit` (e.g. 0)
+- **THEN** the response body has `status === 400` and `message` indicates the limit is invalid
+
+### Requirement: List endpoint handles service errors
+
+The middleware SHALL handle missing service or unexpected service errors in the same manner as the create endpoint.
+
+#### Scenario: Missing language service
+
+- **WHEN** the middleware runs and `res.locals.languageService` is `undefined`
+- **THEN** the response body has `status === 500` and `details.cause` references the missing language service
+
+#### Scenario: Unexpected service error
+
+- **WHEN** `languageService.listLanguages` throws an error
+- **THEN** the response body has `status === 500`, `message === "Internal server error"`, and `details.cause` equals the original error message
+
 ## Middleware Infrastructure
 
 ### Requirement: Language service initializer provides a `LanguageService`
