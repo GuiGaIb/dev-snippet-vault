@@ -1,0 +1,8 @@
+{
+  "name": "backend-dao",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/backend/dao/src",
+  "projectType": "library",
+  "tags": ["platform:node"],
+  "targets": {}
+}

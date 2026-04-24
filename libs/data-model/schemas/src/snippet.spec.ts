@@ -1,8 +1,16 @@
 import { Types } from 'mongoose';
 import { ZodError } from 'zod';
-import { snippetDependencySchema, snippetSchema } from './snippet.js';
+import {
+  snippetSchema as _snippetSchema,
+  snippetDependencySchema,
+} from './snippet.js';
 
 describe('snippet schemas', () => {
+  const snippetSchema = _snippetSchema.omit({
+    createdAt: true,
+    updatedAt: true,
+  });
+
   describe('snippetDependencySchema', () => {
     it('accepts a dependency with name and version', () => {
       expect(
@@ -70,6 +78,7 @@ describe('snippet schemas', () => {
       return {
         id: validId,
         title: 'Hello World',
+        description: 'A valid description',
         code: 'console.log("hello")',
         language: validId,
         dependencies: [],
@@ -150,21 +159,25 @@ describe('snippet schemas', () => {
       expect(result.description).toBe('A cool snippet');
     });
 
-    it('omits description when not provided', () => {
-      const result = snippetSchema.parse(validSnippet());
-      expect(result.description).toBeUndefined();
+    it('rejects description when not provided', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { description, ...snippetWithoutDescription } = validSnippet();
+      expect(() => snippetSchema.parse(snippetWithoutDescription)).toThrow(
+        ZodError,
+      );
     });
 
-    it('rejects a single-line empty description when provided', () => {
+    it('rejects a description shorter than 5 characters after normalization', () => {
       expect(() =>
-        snippetSchema.parse(validSnippet({ description: '   ' })),
+        snippetSchema.parse(validSnippet({ description: '  12  ' })),
       ).toThrow(ZodError);
     });
 
-    it('rejects whitespace-only multiline description content after outer trimming', () => {
-      expect(() =>
-        snippetSchema.parse(validSnippet({ description: '   \n\t  ' })),
-      ).toThrow(ZodError);
+    it('accepts a description of exactly 5 characters', () => {
+      const result = snippetSchema.parse(
+        validSnippet({ description: '12345' }),
+      );
+      expect(result.description).toBe('12345');
     });
 
     it('accepts description and code at the maximum allowed length', () => {

@@ -1,20 +1,37 @@
-import { Types } from 'mongoose';
+import { faker } from '@faker-js/faker';
 import { ZodError } from 'zod';
 import {
+  languageSchema as _languageSchema,
   extractVersionDuplicates,
-  languageSchema,
   languageVersionSchema,
   minimizeVersionSortIdxs,
 } from './language.js';
 
 describe('language schemas', () => {
+  const languageSchema = _languageSchema.omit({
+    createdAt: true,
+    updatedAt: true,
+  });
+
   describe('extractVersionDuplicates', () => {
     it('returns no duplicates for unique version ids and sort indexes', () => {
       expect(
         extractVersionDuplicates([
-          { versionId: '1.0', sortIdx: 0 },
-          { versionId: '2.0', sortIdx: 1 },
-          { versionId: '3.0', sortIdx: 2 },
+          {
+            id: faker.database.mongodbObjectId(),
+            versionId: '1.0',
+            sortIdx: 0,
+          },
+          {
+            id: faker.database.mongodbObjectId(),
+            versionId: '2.0',
+            sortIdx: 1,
+          },
+          {
+            id: faker.database.mongodbObjectId(),
+            versionId: '3.0',
+            sortIdx: 2,
+          },
         ]),
       ).toEqual({
         versionIds: [],
@@ -25,10 +42,26 @@ describe('language schemas', () => {
     it('returns every duplicate occurrence after the first', () => {
       expect(
         extractVersionDuplicates([
-          { versionId: '1.0', sortIdx: 0 },
-          { versionId: '1.0', sortIdx: 1 },
-          { versionId: '2.0', sortIdx: 1 },
-          { versionId: '1.0', sortIdx: 0 },
+          {
+            id: faker.database.mongodbObjectId(),
+            versionId: '1.0',
+            sortIdx: 0,
+          },
+          {
+            id: faker.database.mongodbObjectId(),
+            versionId: '1.0',
+            sortIdx: 1,
+          },
+          {
+            id: faker.database.mongodbObjectId(),
+            versionId: '2.0',
+            sortIdx: 1,
+          },
+          {
+            id: faker.database.mongodbObjectId(),
+            versionId: '1.0',
+            sortIdx: 0,
+          },
         ]),
       ).toEqual({
         versionIds: [
@@ -45,43 +78,57 @@ describe('language schemas', () => {
 
   describe('minimizeVersionSortIdxs', () => {
     it('sorts by sortIdx ascending and renumbers indexes sequentially', () => {
-      expect(
-        minimizeVersionSortIdxs([
-          { versionId: '3.0', sortIdx: 10 },
-          { versionId: '1.0', sortIdx: 2 },
-          { versionId: '2.0', sortIdx: 4 },
-        ]),
-      ).toEqual([
-        { versionId: '1.0', sortIdx: 0 },
-        { versionId: '2.0', sortIdx: 1 },
-        { versionId: '3.0', sortIdx: 2 },
+      const id1 = faker.database.mongodbObjectId();
+      const id2 = faker.database.mongodbObjectId();
+      const id3 = faker.database.mongodbObjectId();
+      const unsorted = [
+        {
+          id: id3,
+          versionId: '3.0',
+          sortIdx: 10,
+        },
+        {
+          id: id1,
+          versionId: '1.0',
+          sortIdx: 2,
+        },
+        {
+          id: id2,
+          versionId: '2.0',
+          sortIdx: 4,
+        },
+      ];
+
+      expect(minimizeVersionSortIdxs(unsorted)).toEqual([
+        { id: id1, versionId: '1.0', sortIdx: 0 },
+        { id: id2, versionId: '2.0', sortIdx: 1 },
+        { id: id3, versionId: '3.0', sortIdx: 2 },
       ]);
     });
 
     it('does not mutate the original array', () => {
       const versions = [
-        { versionId: '2.0', sortIdx: 8 },
-        { versionId: '1.0', sortIdx: 3 },
+        { id: faker.database.mongodbObjectId(), versionId: '2.0', sortIdx: 8 },
+        { id: faker.database.mongodbObjectId(), versionId: '1.0', sortIdx: 3 },
       ];
 
       const minimized = minimizeVersionSortIdxs(versions);
-
       expect(minimized).not.toBe(versions);
-      expect(versions).toEqual([
-        { versionId: '2.0', sortIdx: 8 },
-        { versionId: '1.0', sortIdx: 3 },
-      ]);
+      expect(versions).toEqual(versions);
     });
   });
 
   describe('languageVersionSchema', () => {
     it('normalizes versionId and accepts a nonnegative integer sortIdx', () => {
+      const id = faker.database.mongodbObjectId();
       expect(
         languageVersionSchema.parse({
+          id,
           versionId: '  ES   2023  ',
           sortIdx: 2,
         }),
       ).toEqual({
+        id,
         versionId: 'ES 2023',
         sortIdx: 2,
       });
@@ -90,6 +137,7 @@ describe('language schemas', () => {
     it('rejects invalid version metadata', () => {
       expect(() =>
         languageVersionSchema.parse({
+          id: faker.database.mongodbObjectId(),
           versionId: '   ',
           sortIdx: 0,
         }),
@@ -115,25 +163,35 @@ describe('language schemas', () => {
     let validId: string;
 
     beforeEach(() => {
-      validId = new Types.ObjectId().toString();
+      validId = faker.database.mongodbObjectId();
     });
 
-    it('normalizes the name, validates the id, and minimizes version sort indexes', () => {
+    it('normalizes the name and validates the id', () => {
+      const id1 = faker.database.mongodbObjectId();
+      const id2 = faker.database.mongodbObjectId();
       expect(
         languageSchema.parse({
           id: validId,
           name: '  TypeScript   ',
           versions: [
-            { versionId: '  5.3  ', sortIdx: 8 },
-            { versionId: '  4.9  ', sortIdx: 3 },
+            {
+              id: id1,
+              versionId: '  5.3  ',
+              sortIdx: 8,
+            },
+            {
+              id: id2,
+              versionId: '  4.9  ',
+              sortIdx: 3,
+            },
           ],
         }),
       ).toEqual({
         id: validId,
         name: 'TypeScript',
         versions: [
-          { versionId: '4.9', sortIdx: 0 },
-          { versionId: '5.3', sortIdx: 1 },
+          { id: id1, versionId: '5.3', sortIdx: 8 },
+          { id: id2, versionId: '4.9', sortIdx: 3 },
         ],
       });
     });
@@ -144,8 +202,16 @@ describe('language schemas', () => {
           id: validId,
           name: 'TypeScript',
           versions: [
-            { versionId: '4.9', sortIdx: 0 },
-            { versionId: '4.9', sortIdx: 1 },
+            {
+              id: faker.database.mongodbObjectId(),
+              versionId: '4.9',
+              sortIdx: 0,
+            },
+            {
+              id: faker.database.mongodbObjectId(),
+              versionId: '4.9',
+              sortIdx: 1,
+            },
           ],
         }),
       ).toThrow(ZodError);
@@ -157,8 +223,16 @@ describe('language schemas', () => {
           id: validId,
           name: 'TypeScript',
           versions: [
-            { versionId: '4.9', sortIdx: 0 },
-            { versionId: '5.0', sortIdx: 0 },
+            {
+              id: faker.database.mongodbObjectId(),
+              versionId: '4.9',
+              sortIdx: 0,
+            },
+            {
+              id: faker.database.mongodbObjectId(),
+              versionId: '5.0',
+              sortIdx: 0,
+            },
           ],
         }),
       ).toThrow(ZodError);
@@ -169,9 +243,21 @@ describe('language schemas', () => {
         id: validId,
         name: 'TypeScript',
         versions: [
-          { versionId: '4.9', sortIdx: 0 },
-          { versionId: '4.9', sortIdx: 1 },
-          { versionId: '5.0', sortIdx: 1 },
+          {
+            id: faker.database.mongodbObjectId(),
+            versionId: '4.9',
+            sortIdx: 0,
+          },
+          {
+            id: faker.database.mongodbObjectId(),
+            versionId: '4.9',
+            sortIdx: 1,
+          },
+          {
+            id: faker.database.mongodbObjectId(),
+            versionId: '5.0',
+            sortIdx: 1,
+          },
         ],
       });
 

@@ -150,7 +150,10 @@ export const getNormalizedMultilineSchema = z
       const iw = indentWidth ?? DEFAULT_INDENT_WIDTH;
       const maxNl = maxConsecutiveNewlines ?? DEFAULT_MAX_CONSECUTIVE_NEWLINES;
       return z.preprocess(
-        (x: string) => preprocessNormalizedMultiline(x, iw, maxNl),
+        (x: string) =>
+          typeof x === 'string'
+            ? preprocessNormalizedMultiline(x, iw, maxNl)
+            : x,
         schema,
       );
     },

@@ -18,8 +18,13 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "paths": {
+      "@backend/api": ["libs/backend/api/src/index.ts"],
+      "@backend/api/v1": ["libs/backend/api/src/v1/index.ts"],
+      "@backend/dao/*": ["libs/backend/dao/src/*.ts"],
+      "@backend/zodProp": ["libs/backend/zod-prop/src/index.ts"],
+      "@models/schemas/*": ["libs/data-model/schemas/src/*.ts"],
       "@models/types/*": ["libs/data-model/types/src/*.ts"],
-      "@models/schemas/*": ["libs/data-model/schemas/src/*.ts"]
+      "@tools/mongodb-test-setup": ["tools/mongodb-test-setup/src/index.ts"]
     },
     "resolveJsonModule": true,
     "rootDir": ".",

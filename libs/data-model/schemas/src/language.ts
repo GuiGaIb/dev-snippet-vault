@@ -2,8 +2,10 @@ import type { TLanguage, TLanguageVersion } from '@models/types/language';
 import z from 'zod';
 import { getNormalizedLineSchema } from './shared/normalizedLine.js';
 import { objectIdLikeSchema } from './shared/objectIdLike.js';
+import { timeStampsSchema } from './shared/timestamps.js';
 
 export const languageVersionSchema = z.object({
+  id: objectIdLikeSchema,
   versionId: getNormalizedLineSchema({
     minLength: 1,
     maxLength: 64,
@@ -12,13 +14,37 @@ export const languageVersionSchema = z.object({
 }) satisfies z.ZodType<TLanguageVersion>;
 
 export const languageSchema = z.object({
+  ...timeStampsSchema.shape,
   id: objectIdLikeSchema,
   name: getNormalizedLineSchema({
     minLength: 1,
     maxLength: 64,
   }),
+  versions: z.array(languageVersionSchema).superRefine((versions, ctx) => {
+    const { versionIds, sortIdxs } = extractVersionDuplicates(versions);
+    versionIds.forEach(([index, versionId]) => {
+      ctx.addIssue({
+        code: 'custom',
+        path: [index, 'versionId'],
+        message: `Version ID '${versionId}' is not unique`,
+      });
+    });
+    sortIdxs.forEach(([index, sortIdx]) => {
+      ctx.addIssue({
+        code: 'custom',
+        path: [index, 'sortIdx'],
+        message: `Sort index '${sortIdx}' is not unique`,
+      });
+    });
+  }),
+}) satisfies z.ZodType<TLanguage>;
+
+export type TLanguageInput = z.input<typeof languageSchema>;
+
+export const createLanguageSchema = z.object({
+  name: languageSchema.shape.name,
   versions: z
-    .array(languageVersionSchema)
+    .array(languageVersionSchema.omit({ id: true }))
     .superRefine((versions, ctx) => {
       const { versionIds, sortIdxs } = extractVersionDuplicates(versions);
       versionIds.forEach(([index, versionId]) => {
@@ -36,10 +62,10 @@ export const languageSchema = z.object({
         });
       });
     })
-    .transform(minimizeVersionSortIdxs),
-}) satisfies z.ZodType<TLanguage>;
+    .default(() => []),
+});
 
-export type TLanguageInput = z.input<typeof languageSchema>;
+export type TCreateLanguageInput = z.input<typeof createLanguageSchema>;
 
 /**
  * Finds duplicate `versionId` and `sortIdx` values in version metadata.
@@ -47,7 +73,9 @@ export type TLanguageInput = z.input<typeof languageSchema>;
  * The first occurrence of each value is treated as canonical; only subsequent
  * occurrences are reported, paired with the index where the duplicate appears.
  */
-export function extractVersionDuplicates(versions: TLanguageVersion[]): {
+export function extractVersionDuplicates(
+  versions: Omit<TLanguageVersion, 'id'>[],
+): {
   versionIds: [index: number, versionId: string][];
   sortIdxs: [index: number, sortIdx: number][];
 } {
@@ -87,7 +115,11 @@ export function minimizeVersionSortIdxs(
   // chaining .map(), avoiding a second array allocation
   const sorted = versions.toSorted((a, b) => a.sortIdx - b.sortIdx);
   for (let i = 0; i < sorted.length; i++) {
-    sorted[i] = { versionId: sorted[i].versionId, sortIdx: i };
+    sorted[i] = {
+      id: sorted[i].id,
+      versionId: sorted[i].versionId,
+      sortIdx: i,
+    };
   }
   return sorted;
 }
