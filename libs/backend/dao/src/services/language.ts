@@ -15,7 +15,53 @@ import {
   type LanguageCursorInput,
 } from '../utils/languageCursorCodec.js';
 
+/**
+ * Service layer for creating and reading languages through the DAO model.
+ *
+ * Typical usage:
+ *
+ * - Call {@link LanguageService.getInstance} to obtain a service backed by the
+ *   default language model.
+ * - Use {@link listLanguages} for cursor-based pagination over the language
+ *   collection.
+ * - Use {@link createLanguage}, {@link getLanguageById}, or
+ *   {@link getLanguageByName} for direct CRUD-style interactions.
+ *
+ * @example
+ * ```ts
+ * const service = await LanguageService.getInstance({
+ *   initializeModels: true,
+ * });
+ *
+ * const created = await service.createLanguage({ name: 'TypeScript' });
+ * const fetched = await service.getLanguageById(created.id);
+ * ```
+ *
+ * @example
+ * ```ts
+ * const service = await LanguageService.getInstance();
+ *
+ * const firstPage = await service.listLanguages({
+ *   limit: 10,
+ *   sort: { updatedAt: 'desc' },
+ * });
+ *
+ * const nextPage = firstPage.cursor?.after
+ *   ? await service.listLanguages(firstPage.cursor.after)
+ *   : undefined;
+ * ```
+ */
 export class LanguageService implements ILanguageService {
+  /**
+   * Creates a service instance using either an injected model or a model built
+   * from the provided model options.
+   *
+   * When `initializeModels` is enabled, this also waits for Mongoose indexes to
+   * be initialized before returning.
+   *
+   * @param options - Controls which language model instance backs the service.
+   * @returns A ready-to-use {@link LanguageService}.
+   */
   static async getInstance(options: LanguageServiceOptions = {}) {
     const Languages =
       options.Languages ?? getLanguageModel(options.LanguageModelOptions);
@@ -27,15 +73,44 @@ export class LanguageService implements ILanguageService {
     return new LanguageService(Languages);
   }
 
+  /**
+   * Serializes a parsed language cursor into the opaque base64 string returned
+   * to API clients.
+   *
+   * @param cursor - Parsed cursor payload to serialize.
+   * @returns Base64 cursor string safe to expose externally.
+   */
   static encodeLanguageCursor = languageCursorCodec.decode;
 
+  /**
+   * Parses an opaque base64 cursor string back into the structured cursor
+   * payload used internally by the service.
+   *
+   * @param cursor - Opaque cursor string received from a client.
+   * @returns Parsed cursor object.
+   */
   static decodeLanguageCursor = languageCursorCodec.encode;
 
+  /**
+   * Creates a service bound to a specific language model instance.
+   *
+   * Prefer {@link LanguageService.getInstance} unless a prebuilt model is
+   * already available.
+   *
+   * @param Languages - Backing Mongoose model used for all queries.
+   */
   protected constructor(public readonly Languages: LanguageModel) {}
 
   /**
-   * Builds a Mongoose query for languages using keyset pagination over
-   * `(updatedAt, _id)` per the decoded cursor.
+   * Builds the base Mongoose query used for keyset pagination over
+   * `(updatedAt, _id)`.
+   *
+   * The returned query always requests `limit + 1` documents so callers can
+   * detect whether another page exists without issuing a second query.
+   *
+   * @param cursor - Parsed pagination cursor describing sort order, page size,
+   *   and optional anchor position.
+   * @returns Configured Mongoose query ready to execute.
    */
   buildLanguagesQuery(cursor: LanguageCursor) {
     const sortAsc = cursor.sort.updatedAt === 'asc';
@@ -55,6 +130,10 @@ export class LanguageService implements ILanguageService {
       .sort(sort)
       .limit(cursor.limit + 1);
 
+    /**
+     * Builds the MongoDB filter that selects rows after or before the anchor
+     * document for the requested sort direction.
+     */
     function keysetFilterForSort(
       sortAsc: boolean,
       position: { updatedAt: Date; id: string },
@@ -87,6 +166,10 @@ export class LanguageService implements ILanguageService {
       };
     }
 
+    /**
+     * Computes the MongoDB sort tuple, inverting it when paging backward so the
+     * query can still fetch a contiguous window around the anchor row.
+     */
     function getMongoSort(
       sortAsc: boolean,
       direction: 'after' | 'before' | undefined,
@@ -103,6 +186,8 @@ export class LanguageService implements ILanguageService {
    *
    * @param cursor - Opaque base64 cursor from a prior response, or a plain
    *   cursor object (e.g. first page with sort/limit only).
+   * @returns A page of client-facing language objects plus navigation cursors
+   *   when more data exists in either direction.
    */
   async listLanguages(
     cursor?: string | LanguageCursorInput,
@@ -164,6 +249,16 @@ export class LanguageService implements ILanguageService {
     };
   }
 
+  /**
+   * Normalizes incoming cursor input into the parsed internal cursor shape.
+   *
+   * This method accepts the three service entry cases: no cursor for the first
+   * page, an opaque cursor string from a previous response, or a plain object
+   * used to start a custom page sequence.
+   *
+   * @param cursor - Raw cursor input supplied by the caller.
+   * @returns Parsed cursor with defaults applied.
+   */
   private normalizeLanguageCursor(
     cursor?: string | LanguageCursorInput,
   ): LanguageCursor {
@@ -176,14 +271,32 @@ export class LanguageService implements ILanguageService {
     return languageCursorSchema.parse(cursor);
   }
 
+  /**
+   * Persists a new language document.
+   *
+   * @param data - Language payload validated by the model schema on creation.
+   * @returns The created Mongoose document.
+   */
   createLanguage(data: TCreateLanguageInput): Promise<LanguageDoc> {
     return this.Languages.create(data);
   }
 
+  /**
+   * Looks up a language by its MongoDB identifier.
+   *
+   * @param id - String or ObjectId representation of the language id.
+   * @returns The matching language document, or `null` when none exists.
+   */
   getLanguageById(id: string | Types.ObjectId): Promise<LanguageDoc | null> {
     return this.Languages.findById(id).exec();
   }
 
+  /**
+   * Looks up a language by its unique name.
+   *
+   * @param name - Exact language name to search for.
+   * @returns The matching language document, or `null` when none exists.
+   */
   getLanguageByName(name: string): Promise<LanguageDoc | null> {
     return this.Languages.findOneByName(name);
   }
