@@ -1,53 +1,45 @@
 import { objectIdStringSchema } from '@models/schemas/shared/objectIdString';
 import z from 'zod';
 
-export const languageCursorSchema = z.strictObject({
-  /**
-   * Sort options.
-   */
-  sort: z
-    .strictObject({
-      /**
-       * Sort by updatedAt field.
-       */
-      updatedAt: z.enum(['asc', 'desc']).default('desc'),
-    })
-    .prefault(() => ({})),
-  /**
-   * Limit the number of languages to return.
-   * Must be a positive integer less than or equal to 100.
-   *
-   * @default 10
-   */
-  limit: z.int().positive().max(100).default(10),
-  /**
-   * Pagination anchor. Omitted on the first page.
-   */
-  position: z
-    .strictObject({
-      updatedAt: z.coerce.date<Date>(),
-      id: objectIdStringSchema,
-      direction: z.enum(['after', 'before']),
-    })
-    .optional(),
+export const languageCursorSortSchema = z.strictObject({
+  updatedAt: z.enum(['asc', 'desc']).default('desc'),
 });
 
-/**
- * Codec for encoding and decoding language cursor objects.
- *
- * Direction is reversed because defaults and prefaults are only applied in the
- * "forward" direction.
- *
- * @see https://zod.dev/codecs?id=defaults-and-prefaults
- */
-export const languageCursorCodec = z.codec(
-  languageCursorSchema.prefault(() => ({})),
-  z.base64(),
-  {
-    encode: (value) => JSON.parse(Buffer.from(value, 'base64').toString()),
-    decode: (value) => Buffer.from(JSON.stringify(value)).toString('base64'),
-  },
-);
+export type LanguageCursorSort = z.output<typeof languageCursorSortSchema>;
+
+export const languageCursorPositionSchema = z.strictObject({
+  id: objectIdStringSchema,
+  updatedAt: z.coerce.date<string | number | Date>(),
+  direction: z.enum(['after', 'before']),
+});
+
+export type LanguageCursorPosition = z.output<
+  typeof languageCursorPositionSchema
+>;
+
+export const languageCursorLimitSchema = z.coerce
+  .number()
+  .int()
+  .positive()
+  .max(100);
+
+export const languageCursorSchema = z.strictObject({
+  sort: languageCursorSortSchema.prefault(() => ({})),
+  limit: languageCursorLimitSchema.default(10),
+  position: languageCursorPositionSchema.optional(),
+});
 
 export type LanguageCursor = z.output<typeof languageCursorSchema>;
 export type LanguageCursorInput = z.input<typeof languageCursorSchema>;
+
+export function encodeLanguageCursor(cursor: LanguageCursorInput): string {
+  return Buffer.from(
+    JSON.stringify(languageCursorSchema.parse(cursor)),
+  ).toString('base64');
+}
+
+export function decodeLanguageCursor(cursor: string): LanguageCursor {
+  return languageCursorSchema.parse(
+    JSON.parse(Buffer.from(z.base64().parse(cursor), 'base64').toString()),
+  );
+}

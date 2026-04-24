@@ -9,7 +9,8 @@ import {
   type LanguageModel,
 } from '../models/language.js';
 import {
-  languageCursorCodec,
+  decodeLanguageCursor,
+  encodeLanguageCursor,
   languageCursorSchema,
   type LanguageCursor,
   type LanguageCursorInput,
@@ -72,24 +73,6 @@ export class LanguageService implements ILanguageService {
 
     return new LanguageService(Languages);
   }
-
-  /**
-   * Serializes a parsed language cursor into the opaque base64 string returned
-   * to API clients.
-   *
-   * @param cursor - Parsed cursor payload to serialize.
-   * @returns Base64 cursor string safe to expose externally.
-   */
-  static encodeLanguageCursor = languageCursorCodec.decode;
-
-  /**
-   * Parses an opaque base64 cursor string back into the structured cursor
-   * payload used internally by the service.
-   *
-   * @param cursor - Opaque cursor string received from a client.
-   * @returns Parsed cursor object.
-   */
-  static decodeLanguageCursor = languageCursorCodec.encode;
 
   /**
    * Creates a service bound to a specific language model instance.
@@ -217,7 +200,7 @@ export class LanguageService implements ILanguageService {
     const pageCursor: NonNullable<PagedResponse<LanguageDoc>['cursor']> = {};
     if (emitBefore && docs[0]) {
       const first = docs[0];
-      pageCursor.before = LanguageService.encodeLanguageCursor({
+      pageCursor.before = encodeLanguageCursor({
         sort,
         limit,
         position: {
@@ -229,7 +212,7 @@ export class LanguageService implements ILanguageService {
     }
     if (emitAfter && docs.length > 0) {
       const last = docs[docs.length - 1];
-      pageCursor.after = LanguageService.encodeLanguageCursor({
+      pageCursor.after = encodeLanguageCursor({
         sort,
         limit,
         position: {
@@ -266,7 +249,7 @@ export class LanguageService implements ILanguageService {
       return languageCursorSchema.parse({});
     }
     if (typeof cursor === 'string') {
-      return LanguageService.decodeLanguageCursor(cursor) as LanguageCursor;
+      return decodeLanguageCursor(cursor) as LanguageCursor;
     }
     return languageCursorSchema.parse(cursor);
   }

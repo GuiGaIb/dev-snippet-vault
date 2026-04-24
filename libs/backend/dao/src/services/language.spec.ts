@@ -7,7 +7,10 @@ import {
   DEFAULT_LANGUAGE_MODEL_NAME,
   getLanguageModel,
 } from '../models/language.js';
-import { languageCursorSchema } from '../utils/languageCursorCodec.js';
+import {
+  encodeLanguageCursor,
+  languageCursorSchema,
+} from '../utils/languageCursorCodec.js';
 import { LanguageService } from './language.js';
 
 /*
@@ -225,7 +228,7 @@ describe('LanguageService', () => {
         });
 
         const firstId = expected[0];
-        const beforeFirst = LanguageService.encodeLanguageCursor({
+        const beforeFirst = encodeLanguageCursor({
           sort: { updatedAt: 'desc' },
           limit: 2,
           position: {
