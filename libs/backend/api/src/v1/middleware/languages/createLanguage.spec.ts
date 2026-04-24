@@ -1,4 +1,5 @@
 import type { LanguageModel } from '@backend/dao/models/language';
+import { LanguageService } from '@backend/dao/services/language';
 import { faker } from '@faker-js/faker';
 import { languageSchema } from '@models/schemas/language';
 import { errorResponseSchema } from '@models/schemas/restApi/errorResponse';
@@ -22,25 +23,33 @@ function expectLogicalError(
   expect(body.status).toBe(status);
 }
 
+function uniqueLanguageName(prefix = 'lang'): string {
+  return `${prefix}-${faker.string.nanoid(16)}`;
+}
+
 describe('createLanguage', () => {
   setupTestServer();
 
   let app: Express;
-  let Languages: LanguageModel | undefined;
+  let Languages: LanguageModel;
+
+  beforeAll(async () => {
+    const languageService = await LanguageService.getInstance({
+      initializeModels: true,
+    });
+    Languages = languageService.Languages;
+  });
 
   beforeEach(async () => {
-    app = express().use(json(), initLanguageService, (_req, res, next) => {
-      Languages = res.locals.languageService.Languages;
-      next();
-    });
+    await Languages.deleteMany({});
+
+    app = express().use(json(), initLanguageService);
     app.post('/', createLanguage);
     app.use(errorHandler);
-
-    await Languages?.deleteMany({});
   });
 
   it('creates a language document and responds with status 201 and the created language as a TLanguage object', async () => {
-    const name = faker.lorem.word();
+    const name = uniqueLanguageName();
     const response = await request(app).post('/').send({ name });
 
     expect(response.status).toBe(201);
@@ -49,7 +58,7 @@ describe('createLanguage', () => {
   });
 
   it('responds with ErrorResponse 400 if the language already exists', async () => {
-    const name = faker.lorem.word();
+    const name = uniqueLanguageName();
     const successResponse = await request(app).post('/').send({ name });
 
     expect(successResponse.status).toBe(201);
@@ -102,7 +111,7 @@ describe('createLanguage', () => {
     const response = await request(app)
       .post('/')
       .send({
-        name: faker.lorem.word(),
+        name: uniqueLanguageName(),
         versions: [
           { versionId: 'dup', sortIdx: 0 },
           { versionId: 'dup', sortIdx: 1 },
@@ -126,7 +135,7 @@ describe('createLanguage', () => {
     const response = await request(app)
       .post('/')
       .send({
-        name: faker.lorem.word(),
+        name: uniqueLanguageName(),
         versions: [
           { versionId: 'a', sortIdx: 0 },
           { versionId: 'b', sortIdx: 0 },
@@ -150,7 +159,7 @@ describe('createLanguage', () => {
     const response = await request(app)
       .post('/')
       .send({
-        name: faker.lorem.word(),
+        name: uniqueLanguageName(),
         versions: [{ sortIdx: 0 }],
       });
 
@@ -166,7 +175,7 @@ describe('createLanguage', () => {
 
     const response = await request(bareApp)
       .post('/')
-      .send({ name: faker.lorem.word() });
+      .send({ name: uniqueLanguageName() });
 
     expect(response.status).toBe(200);
     expectLogicalError(500, response.body);
@@ -180,7 +189,6 @@ describe('createLanguage', () => {
       json(),
       initLanguageService,
       (_req, res, next) => {
-        Languages = res.locals.languageService.Languages;
         res.locals.languageService.createLanguage = async () => {
           throw new Error('unexpected persistence failure');
         };
@@ -190,11 +198,9 @@ describe('createLanguage', () => {
     throwingApp.post('/', createLanguage);
     throwingApp.use(errorHandler);
 
-    await Languages?.deleteMany({});
-
     const response = await request(throwingApp)
       .post('/')
-      .send({ name: faker.lorem.word() });
+      .send({ name: uniqueLanguageName() });
 
     expect(response.status).toBe(200);
     expectLogicalError(500, response.body);
@@ -203,7 +209,7 @@ describe('createLanguage', () => {
   });
 
   it('creates a language with versions and returns them with matching versionId and sortIdx', async () => {
-    const name = faker.lorem.word();
+    const name = uniqueLanguageName();
     const versions = [
       { versionId: 'alpha', sortIdx: 0 },
       { versionId: 'beta', sortIdx: 1 },
